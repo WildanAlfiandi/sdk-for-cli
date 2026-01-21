@@ -84,10 +84,20 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
-export function getAllFiles(folder: string): string[] {
+export function getAllFiles(
+  folder: string,
+  ignorer?: any,
+  root?: string,
+): string[] {
   const files: string[] = [];
-  for (const pathDir of fs.readdirSync(folder)) {
+  const entries = fs.readdirSync(folder);
+  const currentRoot = root || folder;
+  for (const pathDir of entries) {
     const pathAbsolute = path.join(folder, pathDir);
+    const relativePath = path.relative(currentRoot, pathAbsolute);
+    if (ignorer && ignorer.ignores(relativePath)) {
+      continue;
+    }
     let stats: fs.Stats;
     try {
       stats = fs.statSync(pathAbsolute);
@@ -95,7 +105,7 @@ export function getAllFiles(folder: string): string[] {
       continue;
     }
     if (stats.isDirectory()) {
-      files.push(...getAllFiles(pathAbsolute));
+      files.push(...getAllFiles(pathAbsolute, ignorer, currentRoot));
     } else {
       files.push(pathAbsolute);
     }

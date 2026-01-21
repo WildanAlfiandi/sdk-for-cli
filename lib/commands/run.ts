@@ -333,9 +333,9 @@ const runFunction = async ({
           );
         }
 
-        const filesToCopy = getAllFiles(functionPath)
-          .map((file: string) => path.relative(functionPath, file))
-          .filter((file: string) => !ignorer.ignores(file));
+        const filesToCopy = getAllFiles(functionPath, ignorer).map(
+          (file: string) => path.relative(functionPath, file),
+        );
         for (const f of filesToCopy) {
           const filePath = path.join(hotSwapPath, f);
           if (fs.existsSync(filePath)) {
