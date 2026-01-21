@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { Ignore } from "ignore";
 import net from "net";
 import childProcess from "child_process";
 import chalk from "chalk";
@@ -84,13 +85,12 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
-type PathIgnorer = {
-  ignores: (path: string) => boolean;
-};
+const normalizeIgnoredPath = (filePath: string): string =>
+  filePath.replace(/\\/g, "/");
 
 export function getAllFiles(
   folder: string,
-  ignorer?: PathIgnorer,
+  ignorer?: Ignore,
   root?: string,
 ): string[] {
   const files: string[] = [];
@@ -98,9 +98,9 @@ export function getAllFiles(
   const currentRoot = root || folder;
   for (const pathDir of entries) {
     const pathAbsolute = path.join(folder, pathDir);
-    const relativePath = path
-      .relative(currentRoot, pathAbsolute)
-      .replace(/\\/g, "/");
+    const relativePath = normalizeIgnoredPath(
+      path.relative(currentRoot, pathAbsolute),
+    );
     if (ignorer && ignorer.ignores(relativePath)) {
       continue;
     }
