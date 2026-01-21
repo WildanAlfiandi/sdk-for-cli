@@ -105,22 +105,29 @@ export function getAllFiles(
     } catch (error) {
       continue;
     }
-    const relativePath = normalizeIgnoredPath(
-      path.relative(currentRoot, pathAbsolute),
-    );
     if (stats.isDirectory()) {
-      if (
-        ignorer &&
+      if (ignorer) {
+        const relativePath = normalizeIgnoredPath(
+          path.relative(currentRoot, pathAbsolute),
+        );
         // Check both variants to match gitignore patterns with or without trailing slashes.
-        (ignorer.ignores(relativePath) ||
-          ignorer.ignores(`${relativePath}/`))
-      ) {
-        continue;
+        if (
+          ignorer.ignores(relativePath) ||
+          (relativePath.endsWith("/") === false &&
+            ignorer.ignores(`${relativePath}/`))
+        ) {
+          continue;
+        }
       }
       files.push(...getAllFiles(pathAbsolute, ignorer, currentRoot));
     } else {
-      if (ignorer && ignorer.ignores(relativePath)) {
-        continue;
+      if (ignorer) {
+        const relativePath = normalizeIgnoredPath(
+          path.relative(currentRoot, pathAbsolute),
+        );
+        if (ignorer.ignores(relativePath)) {
+          continue;
+        }
       }
       files.push(pathAbsolute);
     }
