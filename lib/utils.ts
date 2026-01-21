@@ -99,21 +99,28 @@ export function getAllFiles(
   const currentRoot = root || folder;
   for (const pathDir of entries) {
     const pathAbsolute = path.join(folder, pathDir);
-    const relativePath = normalizeIgnoredPath(
-      path.relative(currentRoot, pathAbsolute),
-    );
-    if (ignorer && ignorer.ignores(relativePath)) {
-      continue;
-    }
     let stats: fs.Stats;
     try {
       stats = fs.statSync(pathAbsolute);
     } catch (error) {
       continue;
     }
+    const relativePath = normalizeIgnoredPath(
+      path.relative(currentRoot, pathAbsolute),
+    );
     if (stats.isDirectory()) {
+      if (
+        ignorer &&
+        (ignorer.ignores(relativePath) ||
+          ignorer.ignores(`${relativePath}/`))
+      ) {
+        continue;
+      }
       files.push(...getAllFiles(pathAbsolute, ignorer, currentRoot));
     } else {
+      if (ignorer && ignorer.ignores(relativePath)) {
+        continue;
+      }
       files.push(pathAbsolute);
     }
   }
