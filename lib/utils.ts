@@ -84,13 +84,13 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
-type Ignorer = {
+type PathIgnorer = {
   ignores: (path: string) => boolean;
 };
 
 export function getAllFiles(
   folder: string,
-  ignorer?: Ignorer,
+  ignorer?: PathIgnorer,
   root?: string,
 ): string[] {
   const files: string[] = [];
@@ -98,7 +98,9 @@ export function getAllFiles(
   const currentRoot = root || folder;
   for (const pathDir of entries) {
     const pathAbsolute = path.join(folder, pathDir);
-    const relativePath = path.relative(currentRoot, pathAbsolute);
+    const relativePath = path
+      .relative(currentRoot, pathAbsolute)
+      .replace(/\\/g, "/");
     if (ignorer && ignorer.ignores(relativePath)) {
       continue;
     }
