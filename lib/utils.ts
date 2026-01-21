@@ -84,9 +84,13 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
+type Ignorer = {
+  ignores: (path: string) => boolean;
+};
+
 export function getAllFiles(
   folder: string,
-  ignorer?: any,
+  ignorer?: Ignorer,
   root?: string,
 ): string[] {
   const files: string[] = [];
