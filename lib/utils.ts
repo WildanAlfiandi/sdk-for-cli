@@ -85,7 +85,7 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
-// Normalize Windows backslashes so ignore rules match gitignore-style paths.
+// Normalize Windows backslashes to forward slashes so ignore rules match gitignore-style patterns.
 const normalizeIgnoredPath = (filePath: string): string =>
   filePath.replace(/\\/g, "/");
 
@@ -111,6 +111,7 @@ export function getAllFiles(
     if (stats.isDirectory()) {
       if (
         ignorer &&
+        // Check both variants to match gitignore patterns with or without trailing slashes.
         (ignorer.ignores(relativePath) ||
           ignorer.ignores(`${relativePath}/`))
       ) {
