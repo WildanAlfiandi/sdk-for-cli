@@ -85,6 +85,7 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
+// Normalize Windows backslashes so ignore rules match gitignore-style paths.
 const normalizeIgnoredPath = (filePath: string): string =>
   filePath.replace(/\\/g, "/");
 
