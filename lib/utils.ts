@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { Ignore } from "ignore";
 import net from "net";
 import childProcess from "child_process";
 import chalk from "chalk";
@@ -84,9 +85,19 @@ export function compareVersions(current: string, latest: string): number {
   return 0; // Same version
 }
 
-export function getAllFiles(folder: string): string[] {
+// Normalize Windows backslashes to forward slashes so ignore rules match gitignore-style patterns.
+const normalizeIgnoredPath = (filePath: string): string =>
+  filePath.replace(/\\/g, "/");
+
+export function getAllFiles(
+  folder: string,
+  ignorer?: Ignore,
+  root?: string,
+): string[] {
   const files: string[] = [];
-  for (const pathDir of fs.readdirSync(folder)) {
+  const entries = fs.readdirSync(folder);
+  const currentRoot = root || folder;
+  for (const pathDir of entries) {
     const pathAbsolute = path.join(folder, pathDir);
     let stats: fs.Stats;
     try {
@@ -95,8 +106,29 @@ export function getAllFiles(folder: string): string[] {
       continue;
     }
     if (stats.isDirectory()) {
-      files.push(...getAllFiles(pathAbsolute));
+      if (ignorer) {
+        const relativePath = normalizeIgnoredPath(
+          path.relative(currentRoot, pathAbsolute),
+        );
+        // Check both variants to match gitignore patterns with or without trailing slashes.
+        if (
+          ignorer.ignores(relativePath) ||
+          (relativePath.endsWith("/") === false &&
+            ignorer.ignores(`${relativePath}/`))
+        ) {
+          continue;
+        }
+      }
+      files.push(...getAllFiles(pathAbsolute, ignorer, currentRoot));
     } else {
+      if (ignorer) {
+        const relativePath = normalizeIgnoredPath(
+          path.relative(currentRoot, pathAbsolute),
+        );
+        if (ignorer.ignores(relativePath)) {
+          continue;
+        }
+      }
       files.push(pathAbsolute);
     }
   }

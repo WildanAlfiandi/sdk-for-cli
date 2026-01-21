@@ -70,9 +70,9 @@ export async function dockerBuild(
     );
   }
 
-  const files = getAllFiles(functionDir)
-    .map((file) => path.relative(functionDir, file))
-    .filter((file) => !ignorer.ignores(file));
+  const files = getAllFiles(functionDir, ignorer).map((file) =>
+    path.relative(functionDir, file),
+  );
   const tmpBuildPath = path.join(functionDir, ".appwrite/tmp-build");
   if (!fs.existsSync(tmpBuildPath)) {
     fs.mkdirSync(tmpBuildPath, { recursive: true });
